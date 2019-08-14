@@ -18,8 +18,9 @@ HUMIDITY_GAUGE = prometheus_client.Gauge("humidity_percent", "Humidity percentag
 @click.option("--prometheus-port", default=8080, type=int)
 @click.option("--aio-user", default=lambda: os.environ.get('ADAFRUIT_IO_USERNAME', ''))
 @click.option("--aio-key", default=lambda: os.environ.get('ADAFRUIT_IO_KEY', ''))
-@click.option("--sleep-seconds", default=10.0, type=float)
-def main(co2trh_binary, sudo, prometheus_port, aio_user, aio_key, sleep_seconds):
+@click.option("--aio-publish-interval-seconds", default=15.0, type=float)
+@click.option("--sleep-seconds", default=2.0, type=float)
+def main(co2trh_binary, sudo, prometheus_port, aio_user, aio_key, aio_publish_interval_seconds, sleep_seconds):
     coloredlogs.install(
         level="INFO", fmt="%(asctime)s %(levelname)s %(name)s %(message)s"
     )
@@ -28,6 +29,8 @@ def main(co2trh_binary, sudo, prometheus_port, aio_user, aio_key, sleep_seconds)
     logging.info("Prometheus metrics listening on 0.0.0.0:{}".format(prometheus_port))
 
     aio = Adafruit_IO.Client(aio_user, aio_key)
+
+    then = time.time()
 
     while True:
         cmd = [co2trh_binary]
@@ -40,9 +43,13 @@ def main(co2trh_binary, sudo, prometheus_port, aio_user, aio_key, sleep_seconds)
         CO2_GAUGE.set(co2)
         TEMPERATURE_GAUGE.set(temperature)
         HUMIDITY_GAUGE.set(humidity)
-        aio.send("pi-co2-sensor.co2", co2)
-        aio.send("pi-co2-sensor.temperature", temperature)
-        aio.send("pi-co2-sensor.humidity", humidity)
+        now = time.time()
+        if (now - then) >= aio_publish_interval_seconds:
+            logging.info("Publishing to Adafruit ({} - {} = {} vs {})".format(now, then, now - then, aio_publish_interval_seconds))
+            aio.send("pi-co2-sensor.co2", co2)
+            aio.send("pi-co2-sensor.temperature", temperature)
+            aio.send("pi-co2-sensor.humidity", humidity)
+            then = now
         time.sleep(sleep_seconds)
 
 if __name__ == "__main__":
