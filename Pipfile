@@ -1,0 +1,17 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+mypy = "*"
+pylint = "*"
+
+[packages]
+adafruit-io = "*"
+prometheus-client = "*"
+click = "*"
+coloredlogs = "*"
+
+[requires]
+python_version = "3.5"
