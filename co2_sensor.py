@@ -18,7 +18,8 @@ HUMIDITY_GAUGE = prometheus_client.Gauge("humidity_percent", "Humidity percentag
 @click.option("--prometheus-port", default=8080, type=int)
 @click.option("--aio-user", default=lambda: os.environ.get('ADAFRUIT_IO_USERNAME', ''))
 @click.option("--aio-key", default=lambda: os.environ.get('ADAFRUIT_IO_KEY', ''))
-def main(co2trh_binary, sudo, prometheus_port, aio_user, aio_key):
+@click.option("--sleep-seconds", default=10.0, type=float)
+def main(co2trh_binary, sudo, prometheus_port, aio_user, aio_key, sleep_seconds):
     coloredlogs.install(
         level="INFO", fmt="%(asctime)s %(levelname)s %(name)s %(message)s"
     )
@@ -42,7 +43,7 @@ def main(co2trh_binary, sudo, prometheus_port, aio_user, aio_key):
         aio.send("pi-co2-sensor.co2", co2)
         aio.send("pi-co2-sensor.temperature", temperature)
         aio.send("pi-co2-sensor.humidity", humidity)
-        time.sleep(2.0)
+        time.sleep(sleep_seconds)
 
 if __name__ == "__main__":
     main()
