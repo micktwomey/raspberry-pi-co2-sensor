@@ -1,0 +1,15 @@
+[Unit]
+Description=Read SCD30 readings and serve up to Prometheus and Adafruit IO
+After=scd30.service
+Requires=scd30.service
+
+[Service]
+User=pi
+Restart=always
+ExecStart=/home/pi/.local/bin/pipenv run python co2_sensor.py --use-sensors-file
+ExecStop=
+EnvironmentFile=/etc/systemd/system/raspberry-pi-co2-sensor.env
+WorkingDirectory=/home/pi/src/raspberry-pi-co2-sensor
+
+[Install]
+WantedBy=multi-user.target
